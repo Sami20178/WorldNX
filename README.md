@@ -1,6 +1,5 @@
 # All World — Node.js API Server
 
-This repository contains the API and account authentication server for the All World app. The frontend is in [All-World-App-Source-Code-](https://github.com/Sami20178/All-World-App-Source-Code-).
 
 ## API
 - `GET /api/health` — health check
