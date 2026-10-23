@@ -1,0 +1,14 @@
+{
+  "name": "worldnx-node-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal Node.js server foundation for WorldNX",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
