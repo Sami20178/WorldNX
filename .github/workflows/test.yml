@@ -1,4 +1,4 @@
-name: Node.js server checks
+name: Node.js server syntax check
 
 on:
   push:
@@ -11,14 +11,14 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  syntax:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out server repository
         uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Run server tests
+      - name: Validate server syntax
         run: npm test
