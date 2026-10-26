@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-26",
+  "mods": [
+    {
+      "id": "worldnx-demo-entry",
+      "name": "WorldNX Demo Entry",
+      "version": "0.1.0",
+      "description": "Example catalog metadata only. No mod archive is hosted by this endpoint.",
+      "platform": "Switch 2 — research only",
+      "compatibility": "unknown",
+      "license": "CC0-1.0 (metadata example only)",
+      "sourceUrl": "https://github.com/Sami20178/WorldNX-Source-Code",
+      "downloadUrl": null,
+      "sha256": null,
+      "status": "metadata-only"
+    }
+  ]
+}
