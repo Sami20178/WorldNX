@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-26",
+  "mods": [
+    {
+      "id": "nx-hbmenu",
+      "name": "nx-hbmenu",
+      "version": "latest (check upstream)",
+      "description": "Nintendo Switch Homebrew Menu. Official upstream page; release assets and current compatibility must be checked upstream.",
+      "platform": "Nintendo Switch homebrew",
+      "compatibility": "not independently verified by WorldNX",
+      "license": "ISC (upstream repository metadata)",
+      "sourceUrl": "https://github.com/switchbrew/nx-hbmenu",
+      "releasesUrl": "https://github.com/switchbrew/nx-hbmenu/releases",
+      "downloadUrl": null,
+      "sha256": null,
+      "status": "metadata-only"
+    },
+    {
+      "id": "jksv",
+      "name": "JKSV",
+      "version": "latest (check upstream)",
+      "description": "Save manager project. This entry links to its upstream source only; no binary is mirrored or automatically installed.",
+      "platform": "Nintendo Switch homebrew",
+      "compatibility": "not independently verified by WorldNX",
+      "license": "GPL-3.0 (upstream repository metadata)",
+      "sourceUrl": "https://github.com/J-D-K/JKSV",
+      "releasesUrl": "https://github.com/J-D-K/JKSV/releases",
+      "downloadUrl": null,
+      "sha256": null,
+      "status": "metadata-only"
+    },
+    {
+      "id": "tesla-menu",
+      "name": "Tesla Menu",
+      "version": "latest (check upstream)",
+      "description": "Nintendo Switch overlay menu project. Check upstream requirements and compatibility before use.",
+      "platform": "Nintendo Switch homebrew",
+      "compatibility": "not independently verified by WorldNX",
+      "license": "GPL-2.0 (upstream repository metadata)",
+      "sourceUrl": "https://github.com/WerWolv/Tesla-Menu",
+      "releasesUrl": "https://github.com/WerWolv/Tesla-Menu/releases",
+      "downloadUrl": null,
+      "sha256": null,
+      "status": "metadata-only"
+    },
+    {
+      "id": "worldnx-demo-entry",
+      "name": "WorldNX Demo Entry",
+      "version": "0.1.0",
+      "description": "Example metadata only; not a downloadable mod.",
+      "platform": "Any (demo)",
+      "compatibility": "unknown",
+      "license": "CC0-1.0 (metadata example only)",
+      "sourceUrl": "https://github.com/Sami20178/WorldNX-Source-Code",
+      "releasesUrl": null,
+      "downloadUrl": null,
+      "sha256": null,
+      "status": "metadata-only"
+    }
+  ]
+}
