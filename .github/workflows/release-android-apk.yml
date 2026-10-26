@@ -32,6 +32,7 @@ jobs:
           repository: Sami20178/WorldNX-Source-Code
           ref: feature/serial-checker-native-apps
           path: source
+          token: ${{ secrets.WORLDNX_SOURCE_TOKEN }}
           persist-credentials: false
 
       - name: Set up Node.js
