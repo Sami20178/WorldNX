@@ -26,6 +26,16 @@ jobs:
         with:
           path: server
 
+      - name: Check required cross-repository token
+        env:
+          SOURCE_TOKEN: ${{ secrets.WORLDNX_SOURCE_TOKEN }}
+        shell: bash
+        run: |
+          if [[ -z "$SOURCE_TOKEN" ]]; then
+            echo "Missing repository secret WORLDNX_SOURCE_TOKEN. Add a token that can read Sami20178/WorldNX-Source-Code in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
       - name: Check out WorldNX client source
         uses: actions/checkout@v4
         with:
