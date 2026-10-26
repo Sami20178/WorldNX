@@ -1,6 +1,10 @@
 name: Build and publish WorldNX Android APK
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/release-android-apk.yml"
   workflow_dispatch:
     inputs:
       release_tag:
@@ -75,8 +79,8 @@ jobs:
       - name: Publish APK and checksum to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.release_tag }}
-          name: WorldNX Android APK ${{ inputs.release_tag }}
+          tag_name: ${{ inputs.release_tag || format('worldnx-android-v0.2.{0}', github.run_number) }}
+          name: WorldNX Android APK ${{ inputs.release_tag || format('worldnx-android-v0.2.{0}', github.run_number) }}
           target_commitish: main
           draft: false
           prerelease: true
