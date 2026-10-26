@@ -45,6 +45,16 @@ test("WorldNX HTTP API", async (t) => {
     assert.equal((await response.json()).error, "method_not_allowed");
   });
 
+  await t.test("OPTIONS preflight advertises supported catalog methods", async () => {
+    const response = await fetch(`${baseUrl}/api/mods`, {
+      method: "OPTIONS",
+      headers: { Origin: "https://worldnx.example", "Access-Control-Request-Method": "GET" }
+    });
+    assert.equal(response.status, 204);
+    assert.equal(response.headers.get("access-control-allow-origin"), "https://worldnx.example");
+    assert.equal(response.headers.get("access-control-allow-methods"), "GET, OPTIONS");
+  });
+
   await t.test("CORS allows only the configured exact origin", async () => {
     const allowed = await fetch(`${baseUrl}/api/mods`, { headers: { Origin: "https://worldnx.example" } });
     assert.equal(allowed.headers.get("access-control-allow-origin"), "https://worldnx.example");
