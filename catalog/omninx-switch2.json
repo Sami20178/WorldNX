@@ -13,7 +13,9 @@
   "target": {
     "platform": "Nintendo Switch 2",
     "status": "research-only",
-    "installable": false
+    "installable": false,
+    "systemSoftwareVersion": "23.0.1",
+    "compatibility": "unverified"
   },
   "repositoryBoundary": {
     "thisRepository": "Node.js server and server-required catalog metadata only",
@@ -23,6 +25,7 @@
     "Verify upstream license and notices at the pinned commit.",
     "Inventory architecture and dependencies before any source import.",
     "Confirm Switch 2 hardware, OS, and compatibility from public vendor documentation.",
-    "Do not publish installable payloads until compatibility and provenance are verified."
+    "Do not publish installable payloads until compatibility and provenance are verified.",
+    "Treat system software 23.0.1 as a requested target only; do not claim support without version-specific evidence and target testing."
   ]
 }
