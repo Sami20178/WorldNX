@@ -8,7 +8,11 @@
     "url": "https://git.niklascfw.de/OmniNX/OmniNX",
     "observedCommit": "27cf616e2d5eed71f4161e8dcb3009eaac07f176",
     "observedVersion": "2.1.1",
-    "license": "MIT (verify against the exact pinned revision before copying files)"
+    "license": "MIT (verify against the exact pinned revision before copying files)",
+    "importedSnapshotCommit": "c9d3e4a960a05d82de0b5666fb77ad9c293c2be9",
+    "reportedFirmwareVersion": "23.0.1",
+    "reportedPackVersion": "2.1.1",
+    "note": "Upstream badge data reports firmware 23.0.1; this does not independently verify Nintendo Switch 2 compatibility."
   },
   "target": {
     "platform": "Nintendo Switch 2",
@@ -26,6 +30,7 @@
     "Inventory architecture and dependencies before any source import.",
     "Confirm Switch 2 hardware, OS, and compatibility from public vendor documentation.",
     "Do not publish installable payloads until compatibility and provenance are verified.",
-    "Treat system software 23.0.1 as a requested target only; do not claim support without version-specific evidence and target testing."
+    "Treat system software 23.0.1 as a requested target only; do not claim support without version-specific evidence and target testing.",
+    "Inspect the imported README and build scripts: current evidence does not establish Switch 2 support."
   ]
 }
