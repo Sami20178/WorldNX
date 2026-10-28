@@ -26,15 +26,29 @@ const REQUIRED_MOD_FIELDS = [
 function validateCatalog(parsed) {
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) ||
       parsed.schemaVersion !== 1 || !Array.isArray(parsed.mods) ||
-      typeof parsed.generatedAt !== "string") {
-    throw new Error("catalog.json must use schemaVersion 1, generatedAt, and a mods array");
+      typeof parsed.generatedAt !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(parsed.generatedAt)) {
+    throw new Error("catalog.json must use schemaVersion 1, a YYYY-MM-DD generatedAt, and a mods array");
+  }
+
+  const generatedDate = new Date(parsed.generatedAt + "T00:00:00.000Z");
+  if (Number.isNaN(generatedDate.getTime()) ||
+      generatedDate.toISOString().slice(0, 10) !== parsed.generatedAt) {
+    throw new Error("catalog.json generatedAt must be a real calendar date");
   }
 
   const ids = new Set();
   for (const mod of parsed.mods) {
     if (!mod || typeof mod !== "object" || Array.isArray(mod) ||
-        REQUIRED_MOD_FIELDS.some((field) => typeof mod[field] !== "string" || !mod[field].trim())) {
+        REQUIRED_MOD_FIELDS.some((field) =>
+          typeof mod[field] !== "string" ||
+          !mod[field].trim() ||
+          mod[field].length > 4096 ||
+          /[\u0000-\u001F\u007F]/.test(mod[field]))) {
       throw new Error("catalog.json contains an invalid mod entry");
+    }
+    if (!/^[a-z0-9][a-z0-9._-]{0,127}$/.test(mod.id)) {
+      throw new Error("catalog.json contains an invalid mod ID");
     }
     if (ids.has(mod.id)) {
       throw new Error("catalog.json contains duplicate mod IDs");
@@ -42,9 +56,35 @@ function validateCatalog(parsed) {
     ids.add(mod.id);
 
     for (const field of ["sourceUrl", "releasesUrl", "downloadUrl", "sha256"]) {
-      if (mod[field] !== undefined && mod[field] !== null && typeof mod[field] !== "string") {
-        throw new Error(`catalog.json field ${field} must be a string or null`);
+      const value = mod[field];
+      if (value !== undefined && value !== null &&
+          (typeof value !== "string" || !value.trim() || value.length > 2048)) {
+        throw new Error("catalog.json field " + field + " must be null or a non-empty string of at most 2048 characters");
       }
+    }
+
+    for (const field of ["sourceUrl", "releasesUrl", "downloadUrl"]) {
+      const value = mod[field];
+      if (value === undefined || value === null) continue;
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(value);
+      } catch {
+        throw new Error("catalog.json field " + field + " must be a valid HTTPS URL");
+      }
+      if (parsedUrl.protocol !== "https:" || !parsedUrl.hostname ||
+          parsedUrl.username || parsedUrl.password) {
+        throw new Error("catalog.json field " + field + " must be a credential-free HTTPS URL");
+      }
+    }
+
+    if (mod.sha256 !== undefined && mod.sha256 !== null &&
+        !/^[a-fA-F0-9]{64}$/.test(mod.sha256)) {
+      throw new Error("catalog.json field sha256 must contain exactly 64 hexadecimal characters");
+    }
+    if (mod.downloadUrl !== undefined && mod.downloadUrl !== null &&
+        (mod.sha256 === undefined || mod.sha256 === null)) {
+      throw new Error("catalog.json downloadUrl requires a SHA-256 checksum");
     }
   }
   return parsed;
