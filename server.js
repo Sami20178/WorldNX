@@ -27,7 +27,7 @@ function validateCatalog(parsed) {
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) ||
       parsed.schemaVersion !== 1 || !Array.isArray(parsed.mods) ||
       typeof parsed.generatedAt !== "string" ||
-      !/^\\d{4}-\\d{2}-\\d{2}$/.test(parsed.generatedAt)) {
+      !/^\d{4}-\d{2}-\d{2}$/.test(parsed.generatedAt)) {
     throw new Error("catalog.json must use schemaVersion 1, a YYYY-MM-DD generatedAt, and a mods array");
   }
 
@@ -44,7 +44,7 @@ function validateCatalog(parsed) {
           typeof mod[field] !== "string" ||
           !mod[field].trim() ||
           mod[field].length > 4096 ||
-          /[\\u0000-\\u001F\\u007F]/.test(mod[field]))) {
+          /[\u0000-\u001F\u007F]/.test(mod[field]))) {
       throw new Error("catalog.json contains an invalid mod entry");
     }
     if (!/^[a-z0-9][a-z0-9._-]{0,127}$/.test(mod.id)) {
