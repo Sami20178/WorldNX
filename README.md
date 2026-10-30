@@ -13,6 +13,10 @@ npm start
 
 Standardmäßig lauscht der Server auf Port 3000. `PORT` und `HOST` können per Umgebungsvariable gesetzt werden.
 
+## Health and readiness
+- `GET /healthz` and `GET /api/health` report that the HTTP process is running.
+- `GET /readyz` and `GET /api/ready` validate the server catalog and report readiness. They return HTTP 503 if the catalog is missing or invalid.
+
 ## Checks
 `npm test` prüft die Syntax von `server.js`. Die HTTP-Vertragstests liegen im Source-Code-Repository und testen den Server separat.
 
