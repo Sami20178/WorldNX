@@ -2,15 +2,61 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const HOST = process.env.HOST || "0.0.0.0";
+const rawHost = process.env.HOST || "0.0.0.0";
 const rawPort = process.env.PORT ?? "3000";
-const PORT = Number(rawPort);
-const CATALOG_PATH = path.join(__dirname, "catalog.json");
-const APP_ORIGIN = process.env.APP_ORIGIN || "";
+const rawAppOrigin = process.env.APP_ORIGIN ?? "";
 
-if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
-  throw new Error("PORT must be an integer from 1 to 65535");
+if (typeof rawPort !== "string" || !/^\\d{1,5}$/.test(rawPort)) {
+  throw new Error("PORT must contain 1 to 5 decimal digits");
 }
+
+function validateServerConfig({ host, port, appOrigin }) {
+  if (typeof host !== "string" || !host || host.trim() !== host ||
+      /[\\s\\u0000-\\u001F\\u007F]/.test(host)) {
+    throw new Error("HOST must be a non-empty hostname or IP address without whitespace");
+  }
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error("PORT must be an integer from 1 to 65535");
+  }
+  if (typeof appOrigin !== "string") {
+    throw new Error("APP_ORIGIN must be a string");
+  }
+
+  let normalizedOrigin = "";
+  if (appOrigin !== "") {
+    let parsedOrigin;
+    try {
+      parsedOrigin = new URL(appOrigin);
+    } catch {
+      throw new Error("APP_ORIGIN must be a valid origin");
+    }
+
+    const isLoopback = ["localhost", "127.0.0.1", "[::1]"].includes(parsedOrigin.hostname);
+    const isAllowedProtocol = parsedOrigin.protocol === "https:" ||
+      (parsedOrigin.protocol === "http:" && isLoopback);
+    const isBareOrigin = parsedOrigin.pathname === "/" &&
+      parsedOrigin.search === "" && parsedOrigin.hash === "" &&
+      !parsedOrigin.username && !parsedOrigin.password &&
+      [parsedOrigin.origin, parsedOrigin.origin + "/"].includes(appOrigin);
+
+    if (!isAllowedProtocol || !isBareOrigin) {
+      throw new Error("APP_ORIGIN must be a bare HTTPS origin (HTTP is allowed only for loopback development)");
+    }
+    normalizedOrigin = parsedOrigin.origin;
+  }
+
+  return { host, port, appOrigin: normalizedOrigin };
+}
+
+const CONFIG = validateServerConfig({
+  host: rawHost,
+  port: Number(rawPort),
+  appOrigin: rawAppOrigin
+});
+const HOST = CONFIG.host;
+const PORT = CONFIG.port;
+const APP_ORIGIN = CONFIG.appOrigin;
+const CATALOG_PATH = path.join(__dirname, "catalog.json");
 
 const REQUIRED_MOD_FIELDS = [
   "id",
@@ -254,11 +300,41 @@ server.requestTimeout = 15000;
 server.headersTimeout = 10000;
 server.keepAliveTimeout = 5000;
 
+function installGracefulShutdown(serverInstance, processEmitter = process) {
+  let shuttingDown = false;
+
+  const shutdown = (signal) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    serverInstance.close((error) => {
+      if (error) {
+        processEmitter.exitCode = 1;
+        console.error("WorldNX server shutdown failed:", error.code || "unknown");
+        return;
+      }
+      console.log(`WorldNX server stopped after ${signal}`);
+    });
+  };
+
+  const onSigterm = () => shutdown("SIGTERM");
+  const onSigint = () => shutdown("SIGINT");
+  processEmitter.once("SIGTERM", onSigterm);
+  processEmitter.once("SIGINT", onSigint);
+
+  return () => {
+    processEmitter.removeListener("SIGTERM", onSigterm);
+    processEmitter.removeListener("SIGINT", onSigint);
+  };
+}
+
 if (require.main === module) {
   server.listen(PORT, HOST, () => {
     console.log(`WorldNX server listening on ${HOST}:${PORT}`);
   });
+  installGracefulShutdown(server);
 }
 
 module.exports = server;
 module.exports.validateCatalog = validateCatalog;
+module.exports.validateServerConfig = validateServerConfig;
+module.exports.installGracefulShutdown = installGracefulShutdown;
