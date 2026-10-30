@@ -142,7 +142,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  const routes = new Set(["/healthz", "/api/health", "/api/info", "/api/catalog"]);
+  const routes = new Set(["/healthz", "/api/health", "/readyz", "/api/ready", "/api/info", "/api/catalog"]);
   if (!routes.has(pathname) && !pathname.startsWith("/api/catalog/")) {
     json(res, 404, { error: "not_found" });
     return;
@@ -168,6 +168,24 @@ const server = http.createServer((req, res) => {
       generation: "next-generation-of-OmniNX",
       version: require("./package.json").version
     });
+    return;
+  }
+
+  if (pathname === "/readyz" || pathname === "/api/ready") {
+    try {
+      const catalog = readCatalog();
+      json(res, 200, {
+        status: "ready",
+        service: "WorldNX",
+        catalog: {
+          schemaVersion: catalog.schemaVersion,
+          generatedAt: catalog.generatedAt,
+          entries: catalog.mods.length
+        }
+      });
+    } catch {
+      json(res, 503, { status: "not_ready", error: "catalog_unavailable" });
+    }
     return;
   }
 
