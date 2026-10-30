@@ -11,7 +11,9 @@ Voraussetzung: eine unterstützte Node.js-LTS-Version 22.x, 24.x oder 26.x. Empf
 npm start
 ```
 
-Standardmäßig lauscht der Server auf Port 3000. `PORT` und `HOST` können per Umgebungsvariable gesetzt werden.
+Standardmäßig lauscht der Server auf Port 3000. `PORT` und `HOST` können per Umgebungsvariable gesetzt werden; ungültige Werte verhindern den Start. `APP_ORIGIN` ist optional und muss eine reine HTTPS-Origin sein (HTTP ist nur für Loopback-Entwicklung erlaubt). Diese Origin steuert die gezielte CORS-Freigabe.
+
+Bei `SIGTERM` oder `SIGINT` schließt der Server den Listener geordnet und lässt laufende Anfragen auslaufen.
 
 ## Health and readiness
 - `GET /healthz` and `GET /api/health` report that the HTTP process is running.
