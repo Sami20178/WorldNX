@@ -9,6 +9,6 @@
     "test": "node --check server.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": "^22 || ^24 || ^26"
   }
 }
