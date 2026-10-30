@@ -5,7 +5,7 @@ WorldNX ist als **nächste Generation von OmniNX** geplant.
 Dieses Repository ist strikt auf den **Node.js-Server und unmittelbar erforderliche Serverdateien** beschränkt. Architektur, eigentlicher Quellcode außerhalb des Server-Laufzeitpakets, Integrationsmanifest und Tests gehören nach [WorldNX-Source-Code](https://github.com/Sami20178/WorldNX-Source-Code).
 
 ## Server starten
-Voraussetzung: Node.js 20 oder neuer.
+Voraussetzung: eine unterstützte Node.js-LTS-Version 22.x, 24.x oder 26.x. Empfohlen ist 26.x; Node.js 20 ist seit 2026-04-30 End-of-Life.
 
 ```sh
 npm start
