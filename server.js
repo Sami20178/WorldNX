@@ -6,13 +6,13 @@ const rawHost = process.env.HOST || "0.0.0.0";
 const rawPort = process.env.PORT ?? "3000";
 const rawAppOrigin = process.env.APP_ORIGIN ?? "";
 
-if (typeof rawPort !== "string" || !/^\\d{1,5}$/.test(rawPort)) {
+if (typeof rawPort !== "string" || !/^\d{1,5}$/.test(rawPort)) {
   throw new Error("PORT must contain 1 to 5 decimal digits");
 }
 
 function validateServerConfig({ host, port, appOrigin }) {
   if (typeof host !== "string" || !host || host.trim() !== host ||
-      /[\\s\\u0000-\\u001F\\u007F]/.test(host)) {
+      /[\s\u0000-\u001F\u007F]/.test(host)) {
     throw new Error("HOST must be a non-empty hostname or IP address without whitespace");
   }
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
