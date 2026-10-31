@@ -188,7 +188,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  const routes = new Set(["/healthz", "/api/health", "/readyz", "/api/ready", "/api/info", "/api/catalog"]);
+  const routes = new Set(["/healthz", "/api/health", "/readyz", "/api/ready", "/api/info", "/api/catalog", "/api/systems"]);
   if (!routes.has(pathname) && !pathname.startsWith("/api/catalog/")) {
     json(res, 404, { error: "not_found" });
     return;
@@ -232,6 +232,17 @@ const server = http.createServer((req, res) => {
     } catch {
       json(res, 503, { status: "not_ready", error: "catalog_unavailable" });
     }
+    return;
+  }
+
+  if (pathname === "/api/systems") {
+    json(res, 200, {
+      systems: [
+        { id: "NiklasCFW", name: "NiklasCFW", releaseUrl: "https://github.com/Woody-NX/NiklasCFW_Pack/releases" },
+        { id: "WorldNX", name: "WorldNX", releaseUrl: "https://github.com/Sami20178/WorldNX/releases" },
+        { id: "OmniNX", name: "OmniNX", releaseUrl: null }
+      ]
+    });
     return;
   }
 
