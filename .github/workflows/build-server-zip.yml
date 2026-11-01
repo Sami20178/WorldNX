@@ -1,0 +1,76 @@
+name: Build WorldNX Server ZIP
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "server.js"
+      - "package.json"
+      - "catalog.json"
+      - "README.md"
+      - ".nvmrc"
+      - ".github/workflows/build-server-zip.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-server-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out server repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Validate server
+        run: |
+          npm test
+          node --check server.js
+          node -e "JSON.parse(require('node:fs').readFileSync('catalog.json', 'utf8'))"
+
+      - name: Create clean server archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/package
+          cp README.md package.json server.js catalog.json .nvmrc dist/package/
+          cat > dist/package/WORLDNX-SERVER-MANIFEST.txt <<'EOF'
+          WorldNX Server ZIP
+          ==================
+          Package: Node.js server source bundle
+          Entry point: server.js
+          Start: npm start
+          Check: npm test
+          Required Node.js: 22, 24 or 26
+          Default port: 3000
+          
+          Included: server source, catalog, package metadata and README.
+          Excluded: node_modules, .git, environment files, credentials,
+          generated build output, console firmware, keys and payloads.
+          
+          This archive is server source code, not an Android APK and not
+          a console CFW installer. Hardware and console compatibility
+          are not established by creating this archive.
+          EOF
+          (
+            cd dist
+            zip -r WorldNX-Server.zip package
+            sha256sum WorldNX-Server.zip > WorldNX-Server.zip.sha256
+            unzip -t WorldNX-Server.zip
+            sha256sum -c WorldNX-Server.zip.sha256
+          )
+
+      - name: Upload WorldNX Server ZIP
+        uses: actions/upload-artifact@v6
+        with:
+          name: WorldNX-Server-zip
+          path: |
+            dist/WorldNX-Server.zip
+            dist/WorldNX-Server.zip.sha256
+          if-no-files-found: error
+          retention-days: 30
