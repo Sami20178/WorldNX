@@ -31,7 +31,9 @@ jobs:
         working-directory: switch-homebrew
         run: |
           export PATH="$DEVKITPRO/devkitA64/bin:$DEVKITPRO/tools/bin:$PATH"
+          mkdir -p build
           make clean
+          mkdir -p build
           make
       - name: Upload NRO artifact
         uses: actions/upload-artifact@v4
