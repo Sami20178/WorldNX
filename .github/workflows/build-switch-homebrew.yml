@@ -23,6 +23,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Install libnx
+        run: |
+          dkp-pacman -Sy --noconfirm
+          dkp-pacman -S --needed --noconfirm libnx
+          test -f "$DEVKITPRO/libnx/switch_rules"
       - name: Verify devkitA64 toolchain
         run: |
           test -x "$DEVKITPRO/devkitA64/bin/aarch64-none-elf-gcc"
@@ -35,6 +40,7 @@ jobs:
           make clean
           mkdir -p build
           make
+          test -s build/WorldNX.nro
       - name: Upload NRO artifact
         uses: actions/upload-artifact@v4
         with:
