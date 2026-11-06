@@ -23,25 +23,40 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Install Nintendo Switch development libraries
+        shell: bash
         run: |
-          dkp-pacman -Sy --noconfirm
-          dkp-pacman -S --needed --noconfirm switch-dev
-          test -f "$DEVKITPRO/libnx/lib/libnx.a"
+          set -euo pipefail
+          command -v curl
+          test -f /etc/pacman.conf
+          cp /etc/pacman.conf /tmp/dkp-pacman.conf
+          # devkitPro's package host can reject the default pacman downloader
+          # with HTTP 403; use curl with a normal browser User-Agent.
+          sed -i '/^\[options\]/a XferCommand = /usr/bin/curl -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36" -L -C - -f -o %o %u' /tmp/dkp-pacman.conf
+          dkp-pacman --config /tmp/dkp-pacman.conf -Sy --noconfirm
+          dkp-pacman --config /tmp/dkp-pacman.conf -S --needed --noconfirm switch-dev
+          test -s "$DEVKITPRO/libnx/lib/libnx.a"
           test -f "$DEVKITPRO/libnx/switch_rules"
+          echo "libnx archive found:"
+          ls -lh "$DEVKITPRO/libnx/lib/libnx.a"
+
       - name: Verify devkitA64 toolchain
         run: |
           test -x "$DEVKITPRO/devkitA64/bin/aarch64-none-elf-gcc"
           "$DEVKITPRO/devkitA64/bin/aarch64-none-elf-gcc" --version
+
       - name: Build NRO
         working-directory: switch-homebrew
         run: |
+          set -euo pipefail
           export PATH="$DEVKITPRO/devkitA64/bin:$DEVKITPRO/tools/bin:$PATH"
           mkdir -p build
           make clean
-          mkdir -p build
-          make
+          make V=1
           test -s build/WorldNX.nro
+          file build/WorldNX.nro
+
       - name: Upload NRO artifact
         uses: actions/upload-artifact@v4
         with:
