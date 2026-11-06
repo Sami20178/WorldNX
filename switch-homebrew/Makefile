@@ -22,7 +22,7 @@ LDFLAGS = -specs=$(DEVKITPRO)/libnx/switch.specs -Wl,-Map,$(notdir $*.map)
 LIBS := -lnx
 
 # Tell switch_rules where libnx and optional portlibs are installed.
-LIBDIRS := $(LIBNX) $(PORTLIBS)
+LIBDIRS := $(DEVKITPRO)/libnx $(PORTLIBS)
 
 .PHONY: all clean
 all: $(BUILD)/$(TARGET).nro
