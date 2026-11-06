@@ -13,7 +13,8 @@ on:
 
 permissions:
   contents: read
- njobs:
+
+jobs:
   build-nro:
     name: Compile WorldNX.nro
     runs-on: ubuntu-latest
