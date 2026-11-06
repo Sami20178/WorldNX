@@ -2,8 +2,10 @@ ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=/opt/devkitpro")
 endif
 
-TOPDIR ?= $(CURDIR)
+# Load the official Switch build rules before setting project-specific variables.
+include $(DEVKITPRO)/libnx/switch_rules
 
+TOPDIR ?= $(CURDIR)
 TARGET := WorldNX
 BUILD := build
 SOURCES := source
@@ -18,16 +20,14 @@ CFLAGS := -g -Wall -O2 -ffunction-sections -fdata-sections $(ARCH)
 CFLAGS += $(INCLUDE) -D__SWITCH__
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions
 ASFLAGS := $(ARCH)
-LDFLAGS = -specs=$(DEVKITPRO)/libnx/switch.specs -L$(DEVKITPRO)/libnx/lib -Wl,-Map,$(notdir $*.map)
-LIBS := -lnx
 
-# Tell switch_rules where libnx and optional portlibs are installed.
-LIBDIRS := $(DEVKITPRO)/libnx $(PORTLIBS)
+# switch_rules links with LIBPATHS; set it explicitly to the installed libnx.
+LIBPATHS := -L$(DEVKITPRO)/libnx/lib
+LDFLAGS := -specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
+LIBS := -lnx
 
 .PHONY: all clean
 all: $(BUILD)/$(TARGET).nro
-
-include $(DEVKITPRO)/libnx/switch_rules
 
 clean:
 	rm -rf $(BUILD)
