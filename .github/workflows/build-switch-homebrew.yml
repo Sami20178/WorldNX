@@ -23,10 +23,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Install libnx
+      - name: Install Nintendo Switch development libraries
         run: |
           dkp-pacman -Sy --noconfirm
-          dkp-pacman -S --needed --noconfirm libnx
+          dkp-pacman -S --needed --noconfirm switch-dev
+          test -f "$DEVKITPRO/libnx/lib/libnx.a"
           test -f "$DEVKITPRO/libnx/switch_rules"
       - name: Verify devkitA64 toolchain
         run: |
