@@ -1,6 +1,7 @@
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
+const net = require("node:net");
 
 const rawHost = process.env.HOST || "0.0.0.0";
 const rawPort = process.env.PORT ?? "3000";
@@ -14,6 +15,19 @@ function validateServerConfig({ host, port, appOrigin }) {
   if (typeof host !== "string" || !host || host.trim() !== host ||
       /[\s\u0000-\u001F\u007F]/.test(host)) {
     throw new Error("HOST must be a non-empty hostname or IP address without whitespace");
+  }
+  const isIpAddress = net.isIP(host) !== 0;
+  const hostname = host.endsWith(".") ? host.slice(0, -1) : host;
+  const labels = hostname.split(".");
+  const isValidHostname = hostname.length <= 253 &&
+    labels.every((label) =>
+      label.length >= 1 &&
+      label.length <= 63 &&
+      /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/.test(label)
+    );
+  const looksLikeInvalidIpv4 = /^\d+(?:\.\d+){3}$/.test(host);
+  if (!isIpAddress && (!isValidHostname || looksLikeInvalidIpv4)) {
+    throw new Error("HOST must be a valid IP address or DNS hostname");
   }
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error("PORT must be an integer from 1 to 65535");
