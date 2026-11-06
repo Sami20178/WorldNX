@@ -9,6 +9,9 @@ DATA :=
 INCLUDES :=
 
 ARCH := -march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
+CC := $(DEVKITPRO)/devkitA64/bin/aarch64-none-elf-gcc
+CXX := $(DEVKITPRO)/devkitA64/bin/aarch64-none-elf-g++
+LD := $(CC)
 CFLAGS := -g -Wall -O2 -ffunction-sections -fdata-sections $(ARCH)
 CFLAGS += $(INCLUDE) -D__SWITCH__
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions
