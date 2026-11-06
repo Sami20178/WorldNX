@@ -238,9 +238,24 @@ const server = http.createServer((req, res) => {
   if (pathname === "/api/systems") {
     json(res, 200, {
       systems: [
-        { id: "NiklasCFW", name: "NiklasCFW", releaseUrl: "https://github.com/Woody-NX/NiklasCFW_Pack/releases" },
-        { id: "WorldNX", name: "WorldNX", releaseUrl: "https://github.com/Sami20178/WorldNX/releases" },
-        { id: "OmniNX", name: "OmniNX", releaseUrl: null }
+        {
+          id: "NiklasCFW",
+          name: "NiklasCFW Pack (legacy)",
+          status: "legacy",
+          releaseUrl: "https://github.com/Woody-NX/NiklasCFW_Pack/releases"
+        },
+        {
+          id: "WorldNX",
+          name: "WorldNX",
+          status: "development",
+          releaseUrl: "https://github.com/Sami20178/WorldNX/releases"
+        },
+        {
+          id: "OmniNX",
+          name: "OmniNX",
+          status: "upstream-reference",
+          releaseUrl: "https://git.niklascfw.de/OmniNX/OmniNX/releases"
+        }
       ]
     });
     return;
