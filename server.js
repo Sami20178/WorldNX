@@ -25,7 +25,7 @@ function validateServerConfig({ host, port, appOrigin }) {
       label.length <= 63 &&
       /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/.test(label)
     );
-  const looksLikeInvalidIpv4 = /^\d{1,3}(?:\.\d{1,3}){3}$/.test(host);
+  const looksLikeInvalidIpv4 = /^\d+(?:\.\d+){3}$/.test(host);
   if (!isIpAddress && (!isValidHostname || looksLikeInvalidIpv4)) {
     throw new Error("HOST must be a valid IP address or DNS hostname");
   }
