@@ -29,10 +29,14 @@ jobs:
         run: |
           set -euo pipefail
           command -v curl
-          test -f /etc/pacman.conf
-          cp /etc/pacman.conf /tmp/dkp-pacman.conf
-          # devkitPro's package host can reject the default pacman downloader
-          # with HTTP 403; use curl with a normal browser User-Agent.
+          PACMAN_CONF="${DEVKITPRO}/pacman/etc/pacman.conf"
+          if [ ! -f "$PACMAN_CONF" ]; then
+            PACMAN_CONF="$(find /etc /opt/devkitpro -name pacman.conf -type f -print -quit)"
+          fi
+          test -n "$PACMAN_CONF"
+          test -f "$PACMAN_CONF"
+          cp "$PACMAN_CONF" /tmp/dkp-pacman.conf
+          # Use curl with a browser User-Agent for devkitPro's Cloudflare-protected package host.
           sed -i '/^\[options\]/a XferCommand = /usr/bin/curl -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36" -L -C - -f -o %o %u' /tmp/dkp-pacman.conf
           dkp-pacman --config /tmp/dkp-pacman.conf -Sy --noconfirm
           dkp-pacman --config /tmp/dkp-pacman.conf -S --needed --noconfirm switch-dev
