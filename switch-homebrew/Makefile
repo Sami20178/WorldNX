@@ -2,6 +2,8 @@ ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=/opt/devkitpro")
 endif
 
+TOPDIR ?= $(CURDIR)
+
 TARGET := WorldNX
 BUILD := build
 SOURCES := source
@@ -18,6 +20,9 @@ CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions
 ASFLAGS := $(ARCH)
 LDFLAGS = -specs=$(DEVKITPRO)/libnx/switch.specs -Wl,-Map,$(notdir $*.map)
 LIBS := -lnx
+
+# Tell switch_rules where libnx and optional portlibs are installed.
+LIBDIRS := $(LIBNX) $(PORTLIBS)
 
 .PHONY: all clean
 all: $(BUILD)/$(TARGET).nro
