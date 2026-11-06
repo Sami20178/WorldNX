@@ -1,0 +1,33 @@
+name: Build WorldNX Switch Homebrew
+
+on:
+  push:
+    paths:
+      - "switch-homebrew/**"
+      - ".github/workflows/build-switch-homebrew.yml"
+  pull_request:
+    paths:
+      - "switch-homebrew/**"
+      - ".github/workflows/build-switch-homebrew.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+ njobs:
+  build-nro:
+    name: Compile WorldNX.nro
+    runs-on: ubuntu-latest
+    container:
+      image: devkitpro/devkita64:latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build NRO
+        working-directory: switch-homebrew
+        run: make
+      - name: Upload NRO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorldNX-homebrew-NRO
+          path: switch-homebrew/build/WorldNX.nro
+          if-no-files-found: error
