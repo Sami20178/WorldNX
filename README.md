@@ -33,16 +33,14 @@ Der Server stellt zunächst nur Health-Endpunkte und Projektdaten bereit. Das is
 
 ## Read-only MCP endpoint
 
-Der Server enthält einen MCP-Streamable-HTTP-Endpunkt unter `POST /mcp`. Er ist ausschließlich für öffentliche Projekt- und Katalogmetadaten vorgesehen. Die Tools sind:
+Der Server enthält einen stateless MCP-Streamable-HTTP-Endpunkt unter `/mcp` mit genau zwei allgemeinen Tools:
 
-- `get_api_health` — Prozess-/Katalogstatus
-- `get_project_info` — öffentliche Repository- und Projektinformationen
-- `list_catalog_entries` — gefilterte Katalogmetadaten
-- `get_catalog_entry` — ein einzelner Metadateneintrag
+- `get_api_health` — öffentlicher Prozess- und Readiness-Status
+- `get_project_info` — allgemeiner Projektstatus und API-Grenzen
 
-Die MCP-Ausgabe enthält bewusst keine Download-URLs, Prüfsummen, Firmware, Schlüssel, Installationsanleitungen oder Geräteaktionen. Es gibt keine Benutzerkonten- oder Schreibwerkzeuge.
+Die MCP-Oberfläche stellt keine Katalogsuche, Geräteaktionen, privaten Kontodaten, Downloads oder Installationsanleitungen bereit.
 
-Für die Freigabe des MCP-Endpunkts ist `MCP_ALLOWED_HOSTS` erforderlich: eine kommaseparierte Liste exakter Hostnamen ohne Port oder Wildcard. Ohne diese Einstellung antwortet `/mcp` mit HTTP 503. Ein vorhandener `Origin`-Header muss exakt zu `APP_ORIGIN` passen. Der Endpunkt ist stateless; für private Daten oder Schreibaktionen wäre vor einer Erweiterung ein separates OAuth-/Berechtigungsdesign nötig.
+Für die Freigabe des MCP-Endpunkts ist `MCP_ALLOWED_HOSTS` erforderlich: eine kommaseparierte Liste exakter Hostnamen ohne Port oder Wildcard. Ohne diese Einstellung antwortet `/mcp` mit HTTP 503. Ein vorhandener `Origin`-Header muss exakt zu `APP_ORIGIN` passen. Der SDK-Transport begrenzt den Request-Body auf 64 KiB.
 
 Die Route ist in diesem Branch implementiert, aber **nicht auf einem öffentlichen Host deployed**. Eine ChatGPT-Verbindung ist daher noch nicht aktiv.
 

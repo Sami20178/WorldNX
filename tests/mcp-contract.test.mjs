@@ -13,15 +13,20 @@ const server = require("../server.js");
 
 function rawRequest(port, method, body, headers = {}) {
   return new Promise((resolve, reject) => {
+    const requestHeaders = {
+      host: "127.0.0.1:" + port,
+      ...headers
+    };
+    if (body !== undefined &&
+        !Object.keys(requestHeaders).some((key) => key.toLowerCase() === "content-length")) {
+      requestHeaders["content-length"] = String(Buffer.byteLength(body));
+    }
     const request = httpRequest({
       hostname: "127.0.0.1",
       port,
       path: "/mcp",
       method,
-      headers: {
-        host: "127.0.0.1:" + port,
-        ...headers
-      }
+      headers: requestHeaders
     }, (response) => {
       const chunks = [];
       response.on("data", (chunk) => chunks.push(chunk));
@@ -41,7 +46,7 @@ function rpcBody(id, method, params = {}) {
   return JSON.stringify({ jsonrpc: "2.0", id, method, params });
 }
 
-test("WorldNX MCP exposes only read-only public metadata", async (t) => {
+test("WorldNX MCP exposes only general read-only project metadata", async (t) => {
   await new Promise((resolve, reject) => {
     server.once("error", reject);
     server.listen(0, "127.0.0.1", resolve);
@@ -54,21 +59,24 @@ test("WorldNX MCP exposes only read-only public metadata", async (t) => {
   const port = server.address().port;
   const jsonHeaders = {
     "content-type": "application/json",
-    accept: "application/json, text/event-stream",
-    "mcp-protocol-version": "2026-07-28"
+    accept: "application/json, text/event-stream"
+  };
+  const protocolHeaders = {
+    ...jsonHeaders,
+    "mcp-protocol-version": "2025-11-25"
   };
 
   const initialize = await rawRequest(
     port,
     "POST",
     rpcBody(1, "initialize", {
-      protocolVersion: "2026-07-28",
+      protocolVersion: "2025-11-25",
       capabilities: {},
       clientInfo: { name: "worldnx-contract-test", version: "1.0.0" }
     }),
     jsonHeaders
   );
-  assert.equal(initialize.status, 200);
+  assert.equal(initialize.status, 200, initialize.text);
   const initialized = JSON.parse(initialize.text);
   assert.equal(initialized.result.serverInfo.name, "worldnx");
 
@@ -76,54 +84,42 @@ test("WorldNX MCP exposes only read-only public metadata", async (t) => {
     port,
     "POST",
     rpcBody(2, "tools/list"),
-    jsonHeaders
+    protocolHeaders
   );
-  assert.equal(listed.status, 200);
+  assert.equal(listed.status, 200, listed.text);
   const tools = JSON.parse(listed.text).result.tools;
   const names = tools.map((tool) => tool.name);
-  for (const name of [
-    "get_api_health",
-    "get_project_info",
-    "list_catalog_entries",
-    "get_catalog_entry"
-  ]) assert.ok(names.includes(name), "missing MCP tool: " + name);
+  assert.deepEqual(names.sort(), ["get_api_health", "get_project_info"]);
   assert.ok(tools.every((tool) => tool.annotations?.readOnlyHint === true));
 
   const health = await rawRequest(
     port,
     "POST",
     rpcBody(3, "tools/call", { name: "get_api_health", arguments: {} }),
-    jsonHeaders
+    protocolHeaders
   );
-  assert.equal(health.status, 200);
+  assert.equal(health.status, 200, health.text);
   const healthText = JSON.parse(health.text).result.content[0].text;
   assert.equal(JSON.parse(healthText).service, "WorldNX");
 
-  const catalog = await rawRequest(
+  const info = await rawRequest(
     port,
     "POST",
-    rpcBody(4, "tools/call", {
-      name: "list_catalog_entries",
-      arguments: { limit: 10 }
-    }),
-    jsonHeaders
+    rpcBody(4, "tools/call", { name: "get_project_info", arguments: {} }),
+    protocolHeaders
   );
-  assert.equal(catalog.status, 200);
-  const catalogText = JSON.parse(catalog.text).result.content[0].text;
-  const catalogData = JSON.parse(catalogText);
-  assert.ok(Array.isArray(catalogData.mods));
-  for (const entry of catalogData.mods) {
-    assert.equal("downloadUrl" in entry, false);
-    assert.equal("releasesUrl" in entry, false);
-    assert.equal("sourceUrl" in entry, false);
-    assert.equal("sha256" in entry, false);
-  }
+  assert.equal(info.status, 200, info.text);
+  const infoText = JSON.parse(info.text).result.content[0].text;
+  const infoData = JSON.parse(infoText);
+  assert.equal(infoData.name, "WorldNX");
+  assert.equal("serverRepository" in infoData, false);
+  assert.equal("sourceRepository" in infoData, false);
 
   const deniedOrigin = await rawRequest(
     port,
     "POST",
     rpcBody(5, "initialize", {
-      protocolVersion: "2026-07-28",
+      protocolVersion: "2025-11-25",
       capabilities: {},
       clientInfo: { name: "origin-test", version: "1.0.0" }
     }),
@@ -135,7 +131,7 @@ test("WorldNX MCP exposes only read-only public metadata", async (t) => {
     port,
     "POST",
     rpcBody(6, "initialize", {
-      protocolVersion: "2026-07-28",
+      protocolVersion: "2025-11-25",
       capabilities: {},
       clientInfo: { name: "host-test", version: "1.0.0" }
     }),
@@ -149,7 +145,7 @@ test("WorldNX MCP exposes only read-only public metadata", async (t) => {
     port,
     "POST",
     rpcBody(7, "initialize", {
-      protocolVersion: "2026-07-28",
+      protocolVersion: "2025-11-25",
       capabilities: {},
       clientInfo: { name: "disabled-test", version: "1.0.0" }
     }),

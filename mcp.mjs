@@ -23,25 +23,12 @@ function toolResult(value) {
   };
 }
 
-function safeCatalogEntry(entry) {
-  return {
-    id: entry.id,
-    name: entry.name,
-    version: entry.version,
-    description: entry.description,
-    platform: entry.platform,
-    compatibility: entry.compatibility,
-    license: entry.license,
-    status: entry.status
-  };
-}
-
 const handler = createMcpHandler(() => {
   const server = new McpServer(
     { name: "worldnx", version: packageInfo.version },
     {
       instructions:
-        "This is a public, read-only WorldNX metadata service. It never downloads software, changes a device, installs firmware, or accesses private user data. Catalog compatibility is not independently verified unless the returned metadata explicitly says otherwise."
+        "This public service exposes only general WorldNX project and API status. It does not list, link, download, or install firmware, homebrew packages, payloads, or device tools. It performs no device operations and does not access private user data."
     }
   );
 
@@ -49,29 +36,23 @@ const handler = createMcpHandler(() => {
     "get_api_health",
     {
       title: "WorldNX API health",
-      description: "Returns public process and catalog readiness metadata.",
+      description: "Returns public process and readiness metadata only.",
       inputSchema: z.object({}),
       annotations: readOnlyAnnotations
     },
     async () => {
-      let catalog = null;
       let ready = false;
       try {
-        catalog = readCatalog();
+        readCatalog();
         ready = true;
       } catch {
-        // Health remains available when the catalog is not ready.
+        // Keep health available without disclosing internal file or validation details.
       }
       return toolResult({
         status: "ok",
         ready,
         service: "WorldNX",
-        version: packageInfo.version,
-        catalog: catalog ? {
-          schemaVersion: catalog.schemaVersion,
-          generatedAt: catalog.generatedAt,
-          entries: catalog.mods.length
-        } : null
+        version: packageInfo.version
       });
     }
   );
@@ -80,96 +61,30 @@ const handler = createMcpHandler(() => {
     "get_project_info",
     {
       title: "WorldNX project information",
-      description: "Returns public project purpose, repository links, and capability limits.",
+      description: "Returns general project purpose and the limits of this public API.",
       inputSchema: z.object({}),
       annotations: readOnlyAnnotations
     },
     async () => toolResult({
       name: "WorldNX",
-      purpose: "Next generation of OmniNX",
-      status: "foundation",
-      serverRepository: "https://github.com/Sami20178/WorldNX",
-      sourceRepository: "https://github.com/Sami20178/WorldNX-Source-Code",
-      capabilities: ["public health metadata", "public project metadata", "read-only catalog metadata"],
+      purpose: "Project and API foundation",
+      status: "development",
+      capabilities: ["public service health", "general project metadata"],
       limitations: [
         "No private account data",
         "No device operations",
-        "No firmware or payload downloads",
-        "No installation or compatibility guarantee"
+        "No firmware, homebrew, or payload discovery",
+        "No downloads or installation guidance",
+        "No compatibility or safety guarantee"
       ]
     })
   );
 
-  server.registerTool(
-    "list_catalog_entries",
-    {
-      title: "List WorldNX catalog metadata",
-      description: "Searches public catalog metadata only; download URLs and installation data are never returned.",
-      inputSchema: z.object({
-        q: z.string().max(100).optional(),
-        platform: z.string().max(80).optional(),
-        status: z.string().max(80).optional(),
-        limit: z.number().int().min(1).max(50).optional()
-      }),
-      annotations: readOnlyAnnotations
-    },
-    async ({ q, platform, status, limit }) => {
-      const catalog = readCatalog();
-      const query = (q || "").trim().toLowerCase();
-      const platformFilter = (platform || "").trim().toLowerCase();
-      const statusFilter = (status || "").trim().toLowerCase();
-      const matches = catalog.mods.filter((entry) => {
-        const searchable = [
-          entry.id, entry.name, entry.description,
-          entry.platform, entry.compatibility, entry.license, entry.status
-        ].join(" ").toLowerCase();
-        return (!query || searchable.includes(query)) &&
-          (!platformFilter || entry.platform.toLowerCase().includes(platformFilter)) &&
-          (!statusFilter || entry.status.toLowerCase() === statusFilter);
-      });
-      const pageSize = limit ?? 20;
-      return toolResult({
-        schemaVersion: catalog.schemaVersion,
-        generatedAt: catalog.generatedAt,
-        total: matches.length,
-        returned: Math.min(matches.length, pageSize),
-        mods: matches.slice(0, pageSize).map(safeCatalogEntry)
-      });
-    }
-  );
-
-  server.registerTool(
-    "get_catalog_entry",
-    {
-      title: "Get WorldNX catalog metadata",
-      description: "Returns one public metadata entry without download URLs or installation instructions.",
-      inputSchema: z.object({
-        id: z.string().min(1).max(128)
-      }),
-      annotations: readOnlyAnnotations
-    },
-    async ({ id }) => {
-      const catalog = readCatalog();
-      const entry = catalog.mods.find((item) => item.id === id);
-      if (!entry) {
-        return {
-          isError: true,
-          content: [{ type: "text", text: "Catalog entry not found." }]
-        };
-      }
-      return toolResult({
-        schemaVersion: catalog.schemaVersion,
-        generatedAt: catalog.generatedAt,
-        mod: safeCatalogEntry(entry)
-      });
-    }
-  );
-
   return server;
-});
+}, { maxRequestBodySize: 64 * 1024, responseMode: "json" });
 
-const nodeHandler = toNodeHandler(handler);
+const nodeHandler = toNodeHandler(handler, { maxRequestBodySize: 64 * 1024 });
 
-export function handleMcpRequest(req, res, parsedBody) {
-  return nodeHandler(req, res, parsedBody);
+export function handleMcpRequest(req, res) {
+  return nodeHandler(req, res);
 }
