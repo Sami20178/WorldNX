@@ -2,13 +2,18 @@
   "name": "worldnx-node-server",
   "version": "0.2.0",
   "private": true,
-  "description": "WorldNX Node.js server with a read-only mod catalog API",
+  "description": "WorldNX Node.js server with read-only catalog and MCP metadata APIs",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --check server.js"
+    "test": "node --check server.js && node --check mcp.mjs && node --test tests/*.test.mjs"
   },
   "engines": {
     "node": "^22 || ^24 || ^26"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/node": "2.1.2",
+    "@modelcontextprotocol/server": "2.4.0",
+    "zod": "4.2.0"
   }
 }

@@ -29,3 +29,23 @@ Die Planung und Tests dazu liegen in [WorldNX-Source-Code](https://github.com/Sa
 
 ## Aktueller Status
 Der Server stellt zunächst nur Health-Endpunkte und Projektdaten bereit. Das ist ein überprüfbares Fundament, noch kein vollständiger NEX-/Nintendo-Online-Dienst. Weitere Protokolle werden getrennt geplant, getestet und anhand der jeweiligen Lizenzen integriert.
+
+
+## Read-only MCP endpoint
+
+Der Server enthält einen MCP-Streamable-HTTP-Endpunkt unter `POST /mcp`. Er ist ausschließlich für öffentliche Projekt- und Katalogmetadaten vorgesehen. Die Tools sind:
+
+- `get_api_health` — Prozess-/Katalogstatus
+- `get_project_info` — öffentliche Repository- und Projektinformationen
+- `list_catalog_entries` — gefilterte Katalogmetadaten
+- `get_catalog_entry` — ein einzelner Metadateneintrag
+
+Die MCP-Ausgabe enthält bewusst keine Download-URLs, Prüfsummen, Firmware, Schlüssel, Installationsanleitungen oder Geräteaktionen. Es gibt keine Benutzerkonten- oder Schreibwerkzeuge.
+
+Für die Freigabe des MCP-Endpunkts ist `MCP_ALLOWED_HOSTS` erforderlich: eine kommaseparierte Liste exakter Hostnamen ohne Port oder Wildcard. Ohne diese Einstellung antwortet `/mcp` mit HTTP 503. Ein vorhandener `Origin`-Header muss exakt zu `APP_ORIGIN` passen. Der Endpunkt ist stateless; für private Daten oder Schreibaktionen wäre vor einer Erweiterung ein separates OAuth-/Berechtigungsdesign nötig.
+
+Die Route ist in diesem Branch implementiert, aber **nicht auf einem öffentlichen Host deployed**. Eine ChatGPT-Verbindung ist daher noch nicht aktiv.
+
+## Checks
+
+`npm install --ignore-scripts --no-audit --no-fund` installiert die fest gepinnten direkten Abhängigkeiten. `npm test` prüft Syntax und MCP-HTTP-Verträge mit Node.js-Bordmitteln.

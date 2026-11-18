@@ -1,4 +1,4 @@
-name: Node.js server syntax check
+name: Node.js server and MCP validation
 
 on:
   push:
@@ -24,5 +24,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Validate server syntax
+      - name: Install pinned server dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Run server and MCP contract tests
         run: npm test
