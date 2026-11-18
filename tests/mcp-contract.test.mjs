@@ -46,6 +46,18 @@ function rpcBody(id, method, params = {}) {
   return JSON.stringify({ jsonrpc: "2.0", id, method, params });
 }
 
+function parseRpcPayload(text) {
+  const trimmed = text.trim();
+  if (trimmed.startsWith("event:") || trimmed.startsWith("data:")) {
+    const data = trimmed.split(/\\r?\\n/)
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => line.slice(5).trimStart())
+      .join("\\n");
+    return JSON.parse(data);
+  }
+  return JSON.parse(trimmed);
+}
+
 test("WorldNX MCP exposes only general read-only project metadata", async (t) => {
   await new Promise((resolve, reject) => {
     server.once("error", reject);
@@ -77,7 +89,7 @@ test("WorldNX MCP exposes only general read-only project metadata", async (t) =>
     jsonHeaders
   );
   assert.equal(initialize.status, 200, initialize.text);
-  const initialized = JSON.parse(initialize.text);
+  const initialized = parseRpcPayload(initialize.text);
   assert.equal(initialized.result.serverInfo.name, "worldnx");
 
   const listed = await rawRequest(
@@ -87,7 +99,7 @@ test("WorldNX MCP exposes only general read-only project metadata", async (t) =>
     protocolHeaders
   );
   assert.equal(listed.status, 200, listed.text);
-  const tools = JSON.parse(listed.text).result.tools;
+  const tools = parseRpcPayload(listed.text).result.tools;
   const names = tools.map((tool) => tool.name);
   assert.deepEqual(names.sort(), ["get_api_health", "get_project_info"]);
   assert.ok(tools.every((tool) => tool.annotations?.readOnlyHint === true));
@@ -99,7 +111,7 @@ test("WorldNX MCP exposes only general read-only project metadata", async (t) =>
     protocolHeaders
   );
   assert.equal(health.status, 200, health.text);
-  const healthText = JSON.parse(health.text).result.content[0].text;
+  const healthText = parseRpcPayload(health.text).result.content[0].text;
   assert.equal(JSON.parse(healthText).service, "WorldNX");
 
   const info = await rawRequest(
@@ -109,7 +121,7 @@ test("WorldNX MCP exposes only general read-only project metadata", async (t) =>
     protocolHeaders
   );
   assert.equal(info.status, 200, info.text);
-  const infoText = JSON.parse(info.text).result.content[0].text;
+  const infoText = parseRpcPayload(info.text).result.content[0].text;
   const infoData = JSON.parse(infoText);
   assert.equal(infoData.name, "WorldNX");
   assert.equal("serverRepository" in infoData, false);
