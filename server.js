@@ -188,6 +188,39 @@ function checkMcpHost(req) {
   }
 }
 
+const MAX_MCP_BODY_BYTES = 64 * 1024;
+
+async function readMcpJsonBody(req) {
+  const declaredLength = req.headers["content-length"];
+  if (declaredLength !== undefined) {
+    if (!/^\d+$/.test(String(declaredLength))) {
+      req.resume();
+      throw Object.assign(new Error("invalid_content_length"), { status: 400 });
+    }
+    if (Number(declaredLength) > MAX_MCP_BODY_BYTES) {
+      req.resume();
+      throw Object.assign(new Error("payload_too_large"), { status: 413 });
+    }
+  }
+
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > MAX_MCP_BODY_BYTES) {
+      req.resume();
+      throw Object.assign(new Error("payload_too_large"), { status: 413 });
+    }
+    chunks.push(chunk);
+  }
+  if (size === 0) throw Object.assign(new Error("empty_body"), { status: 400 });
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch {
+    throw Object.assign(new Error("invalid_json"), { status: 400 });
+  }
+}
+
 const server = http.createServer(async (req, res) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
@@ -245,17 +278,25 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    let parsedBody;
     if (req.method === "POST") {
       const contentType = String(req.headers["content-type"] || "");
       if (!/^application\/json(?:\s*;|$)/i.test(contentType)) {
         json(res, 415, { error: "unsupported_media_type" });
         return;
       }
+      try {
+        parsedBody = await readMcpJsonBody(req);
+      } catch (error) {
+        const status = error.status === 413 ? 413 : 400;
+        json(res, status, { error: status === 413 ? "payload_too_large" : "invalid_request_body" });
+        return;
+      }
     }
 
     try {
       const { handleMcpRequest } = await import("./mcp.mjs");
-      await handleMcpRequest(req, res);
+      await handleMcpRequest(req, res, parsedBody);
     } catch {
       console.warn("worldnx_mcp_handler_failed");
       if (!res.headersSent) json(res, 500, { error: "mcp_unavailable" });

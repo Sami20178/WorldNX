@@ -85,6 +85,6 @@ const handler = createMcpHandler(() => {
 
 const nodeHandler = toNodeHandler(handler, { maxRequestBodySize: 64 * 1024 });
 
-export function handleMcpRequest(req, res) {
-  return nodeHandler(req, res);
+export function handleMcpRequest(req, res, parsedBody) {
+  return nodeHandler(req, res, parsedBody);
 }
