@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "server.js"
+      - "mcp.mjs"
       - "package.json"
       - "catalog.json"
       - "README.md"
@@ -27,6 +28,9 @@ jobs:
         with:
           node-version: 24
 
+      - name: Install pinned server dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+
       - name: Validate server
         run: |
           npm test
@@ -38,7 +42,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist/package
-          cp README.md package.json server.js catalog.json .nvmrc dist/package/
+          cp README.md package.json server.js mcp.mjs catalog.json .nvmrc dist/package/
           cat > dist/package/WORLDNX-SERVER-MANIFEST.txt <<'EOF'
           WorldNX Server ZIP
           ==================
