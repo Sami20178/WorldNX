@@ -48,15 +48,39 @@ function rpcBody(id, method, params = {}) {
 
 function parseRpcPayload(text) {
   const trimmed = text.trim();
-  if (trimmed.startsWith("event:") || trimmed.startsWith("data:")) {
-    const data = trimmed.split(/\\r?\\n/)
+  if (!trimmed) throw new Error("MCP response body is empty");
+
+  // The SDK's 2025-era stateless fallback can return SSE even when
+  // responseMode is "json"; collect actual data lines, not escaped "\\n" text.
+  const blocks = trimmed.split(/\r?\n\r?\n/);
+  for (const block of blocks) {
+    const data = block.split(/\r?\n/)
       .filter((line) => line.startsWith("data:"))
       .map((line) => line.slice(5).trimStart())
-      .join("\\n");
-    return JSON.parse(data);
+      .join("\n");
+    if (!data) continue;
+    try {
+      const payload = JSON.parse(data);
+      if (payload && payload.jsonrpc === "2.0") return payload;
+    } catch {
+      // Ignore non-JSON SSE events and continue to the next data block.
+    }
   }
-  return JSON.parse(trimmed);
+
+  try {
+    const payload = JSON.parse(trimmed);
+    if (payload && payload.jsonrpc === "2.0") return payload;
+  } catch {
+    // Replaced below with a stable diagnostic that does not echo response data.
+  }
+  throw new Error("MCP response did not contain a valid JSON-RPC payload");
 }
+
+test("MCP response parser accepts JSON and legacy SSE envelopes", () => {
+  const expected = { jsonrpc: "2.0", id: 1, result: { ok: true } };
+  assert.deepEqual(parseRpcPayload(JSON.stringify(expected)), expected);
+  assert.deepEqual(parseRpcPayload("event: message\ndata: " + JSON.stringify(expected) + "\n\n"), expected);
+});
 
 test("WorldNX MCP exposes only general read-only project metadata", async (t) => {
   await new Promise((resolve, reject) => {
